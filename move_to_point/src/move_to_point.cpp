@@ -11,10 +11,17 @@
 #include <tf/transform_datatypes.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/Bool.h>
+#include <kobuki_msgs/Sound.h>
 
 ros::Publisher pub_atBase_;
+ros::Publisher pub_nextClient_;
+ros::Publisher pub_dockNow_;
+ros::Publisher pub_Sound;
+kobuki_msgs::Sound sound_;
 std_msgs::Bool atbase_;
+std_msgs::Int8 next_;
 using namespace std;
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -25,10 +32,17 @@ int main(int argc, char** argv) {
     cout<<"beginning ...";
     ros::init(argc, argv, "move_to_point");
 
+    next_.data=1;
+
     ros::NodeHandle nh;
     pub_atBase_ = nh.advertise<std_msgs::Bool>("at_base", 10);
+    pub_nextClient_ = nh.advertise<std_msgs::Int8>("next_Client", 10);
+    pub_Sound = nh.advertise<kobuki_msgs::Sound>("/mobile_base/commands/sound", 10);
+    pub_dockNow_ = nh.advertise<std_msgs::Int8>("dock_now", 10);
 
     ros::Subscriber sub_coffee = nh.subscribe("move_to", 1000, moveTo);
+
+
 
     ROS_INFO("omg");
      ros::spin();
@@ -86,15 +100,26 @@ void moveToSpecificPoint(double x, double y){
 
     if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
         ROS_INFO("You have reached the goal!");
-        if(x==0.0 && y==0.0){
+        
+        if(x==1.0 && y==1.0){
             ROS_INFO("at Base !");
             atbase_.data=true;
             pub_atBase_.publish(atbase_);
+            sound_.value = 4;
+            pub_Sound.publish(sound_);
+        }else if(x==4.62 && y==-0.68){
+            ROS_INFO("reached the base !");
+            ros::Duration(2).sleep();
+            std_msgs::Int8 i;
+            i.data = 1;
+            pub_dockNow_.publish(i);
         }else{
             ROS_INFO("not comparable");
         }
     }else
         ROS_INFO("The base failed for some reason");
+
+    // pub_nextClient_.publish(next_);
 }
 
 void moveTo(const geometry_msgs::Twist::ConstPtr & coord){
@@ -103,5 +128,9 @@ void moveTo(const geometry_msgs::Twist::ConstPtr & coord){
     atbase_.data=false;
     pub_atBase_.publish(atbase_);
     moveToSpecificPoint(coord->linear.x,coord->linear.y);
+    // ros::Duration(2).sleep();
+    sound_.value=5;
+    pub_Sound.publish(sound_);
+
 
 }
