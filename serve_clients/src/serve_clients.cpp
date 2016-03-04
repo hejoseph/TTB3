@@ -5,8 +5,9 @@
 #include <std_msgs/Int8.h>
 
 custom_data::ClientArray ca_serving;
-
+//serve the first command/client on the ca list
 void serving_clients(const custom_data::ClientArray::ConstPtr & ca);
+//when client pushes the button, the robot will serve the next client
 void processNext(const std_msgs::Int8::ConstPtr & msg);
 
 ros::Publisher pub_goToPoint;

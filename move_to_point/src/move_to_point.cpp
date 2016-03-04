@@ -26,6 +26,7 @@ using namespace std;
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
+//the robot will move to x y position of the map
 void moveTo(const geometry_msgs::Twist::ConstPtr & coord);
 
 int main(int argc, char** argv) {
@@ -107,7 +108,7 @@ void moveToSpecificPoint(double x, double y){
             pub_atBase_.publish(atbase_);
             sound_.value = 4;
             pub_Sound.publish(sound_);
-        }else if(x==4.62 && y==-0.68){
+        }else if(x==0.10 && y==2.18){
             ROS_INFO("reached the base !");
             ros::Duration(2).sleep();
             std_msgs::Int8 i;
@@ -129,7 +130,7 @@ void moveTo(const geometry_msgs::Twist::ConstPtr & coord){
     pub_atBase_.publish(atbase_);
     moveToSpecificPoint(coord->linear.x,coord->linear.y);
     // ros::Duration(2).sleep();
-    sound_.value=5;
+    sound_.value=4;
     pub_Sound.publish(sound_);
 
 

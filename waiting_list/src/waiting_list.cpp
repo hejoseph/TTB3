@@ -9,7 +9,9 @@
 const int MAX_ITEM=4;
 
 using namespace std;
+//current client list
 custom_data::ClientArray ca_;
+
 custom_data::ClientArray ca_serving;
 custom_data::Client c;
 ros::Publisher pubClients_;
@@ -30,12 +32,19 @@ int total_item;
 ros::Publisher pub_goToPoint;
 
 void processService(const std_msgs::Int8::ConstPtr & msg);
+
+//when page is requested, current client list is send to /clients topic
 void processRequest(const std_msgs::Int8::ConstPtr & request);
+//add the custom_data client (name,x,y) to the global variable ca_
 void processCommand(const custom_data::Client::ConstPtr & client);
 // void valid_pressed(const std_msgs::Int8::ConstPtr & pressed);
+//listen when a command is validated (button "Validate Drink" in the browser)
 void valid_pressed(const kobuki_msgs::ButtonEvent::ConstPtr & pressed);
+//go back to base, where the coffee machine is
 void goToLoadDrink();
+//start serving the client in the ca_serving variable(list)
 void goServing();
+//when button is pushed,after taking care of the command(could be one or multiple coffee)
 void manage_pressed();
 
 void change_state(const std_msgs::Int8::ConstPtr & state);
@@ -53,15 +62,16 @@ int main(int argc, char** argv) {
 	pubClients_ = nh.advertise<custom_data::ClientArray>("clients", 10);
 	// ros::Rate loop_rate(0.05);
 
-	//load clients list when page is requested
+
 	ros::Subscriber sub_request = nh.subscribe<std_msgs::Int8>("request_page", 1000, processRequest);
 
-	//save the name of the client and his position x y
+
 	ros::Subscriber sub_command = nh.subscribe<custom_data::Client>("command_client", 1000, processCommand);
+
 
 	ros::Subscriber sub_service = nh.subscribe<std_msgs::Int8>("service_availibility", 1000, processService);
 
-	//listen when a drink is validated (button "Validate Drink" in the browser)
+
 	ros::Subscriber sub_valid_pressed = nh.subscribe<kobuki_msgs::ButtonEvent>("/mobile_base/events/button", 1000, valid_pressed);
 	// ros::Subscriber sub_valid_pressed = nh.subscribe<kobuki_msgs::ButtonEvent>("/mobile_base/events/button", 1000, valid_pressed);
 	//send the validated drinks to be processed
@@ -98,17 +108,17 @@ void processService(const std_msgs::Int8::ConstPtr & msg) {
 void change_state(const std_msgs::Int8::ConstPtr & msg) {
 	ROS_INFO("changing state ...%d", msg->data);
 	robot_state = msg->data;
-	if (ca_.clients.size() > 0) {
+	// if (ca_.clients.size() > 0) {
 		goToLoadDrink();
-	}
+	// }
 }
 
 void goToLoadDrink() {
 	if (robot_state == 0) {
 		//go load drink at the cafeteria
 		geometry_msgs::Twist twist;
-		twist.linear.x = 3.45;
-		twist.linear.y = -1.26;
+		twist.linear.x = 1.0;
+		twist.linear.y = 1.0;
 		twist.linear.z = 0.0;
 		twist.angular.x = 0.0;
 		twist.angular.y = 0.0;

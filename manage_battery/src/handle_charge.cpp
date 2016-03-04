@@ -12,8 +12,10 @@ int flag_old_state;
 ros::Publisher pub_goToPoint;
 ros::Publisher pub_teleop;
 
+
 void handleCharge(const std_msgs::Int8::ConstPtr & request);
 void handleDock(const std_msgs::Int8::ConstPtr & request);
+//call this function, the robot needs to be 1 meter from the dock station
 void dockAction();
 
 int main(int argc, char** argv) {
@@ -66,6 +68,7 @@ void handleCharge(const std_msgs::Int8::ConstPtr & request){
 		geometry_msgs::Twist coord;
 		if(flag_state==0){
 			ROS_INFO("Going to base for charge");
+			//specify dock station coord
 			coord.linear.x = 0.10;
 			coord.linear.y = 2.18;
 			pub_goToPoint.publish(coord);
