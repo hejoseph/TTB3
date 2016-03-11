@@ -15,6 +15,10 @@
 #include <std_msgs/Bool.h>
 #include <kobuki_msgs/Sound.h>
 
+#include <tf/transform_listener.h>
+#include <nav_msgs/Odometry.h>
+#include <angles/angles.h>
+
 ros::Publisher pub_atBase_;
 ros::Publisher pub_nextClient_;
 ros::Publisher pub_dockNow_;
@@ -24,10 +28,36 @@ std_msgs::Bool atbase_;
 std_msgs::Int8 next_;
 using namespace std;
 
+
+tf::TransformListener *odom_listener;
+double x_current = 0;
+double y_current = 0;
+double theta_current = 0;
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 //the robot will move to x y position of the map
 void moveTo(const geometry_msgs::Twist::ConstPtr & coord);
+
+//does not work
+// void get_odom()
+// {
+
+//     tf::StampedTransform transform;
+    // try
+    // {
+        // odom_listener->lookupTransform("/odom", "/base_footprint", ros::Time(0), transform);
+
+        // x_current = transform.getOrigin().x();
+        // y_current = transform.getOrigin().y();
+        // theta_current = angles::normalize_angle_positive(tf::getYaw(transform.getRotation()));
+        // ROS_INFO("odom (x, y, theta) : (%f, %f, %f)", x_current, y_current, theta_current);
+    // }
+    // catch (tf::TransformException &ex)
+    // {
+    //     ROS_ERROR("%s",ex.what());
+    // }
+// }
 
 int main(int argc, char** argv) {
     cout<<"beginning ...";
@@ -43,6 +73,8 @@ int main(int argc, char** argv) {
 
     ros::Subscriber sub_coffee = nh.subscribe("move_to", 1000, moveTo);
 
+
+    // get_odom();
 
 
     ROS_INFO("omg");
@@ -60,7 +92,7 @@ void moveToSpecificPoint(double x, double y){
     ROS_INFO("The value of x is %f",x);
     //nh.getParam("goal_y", y);
     //nh.getParam("goal_theta", theta);
-
+    theta=10.0;
     // create the action client
     // true causes the client to spin its own thread
     MoveBaseClient ac("move_base", true);
@@ -82,16 +114,22 @@ void moveToSpecificPoint(double x, double y){
 
     goal.target_pose.pose.position.x = x;
     goal.target_pose.pose.position.y = y;
+    ROS_INFO("theta =%f", theta);
+    ROS_INFO("m_pi =%f", M_PI);
 
     // Convert the Euler angle to quaternion
     double radians = theta * (M_PI/180);
+    ROS_INFO("radians =%f", radians);
     tf::Quaternion quaternion;
-    quaternion = tf::createQuaternionFromYaw(radians);
+    quaternion = tf::createQuaternionFromYaw(0);
 
     geometry_msgs::Quaternion qMsg;
-    tf::quaternionTFToMsg(quaternion, qMsg);
+    // tf::quaternionTFToMsg(quaternion, qMsg);
 
+    qMsg.w=1;
+    qMsg.z=0;
     goal.target_pose.pose.orientation = qMsg;
+    ROS_INFO("Quaternion msg  x = %f, y = %f, z = %f, w = %f", qMsg.x, qMsg.y, qMsg.z, qMsg.w);
 
     ROS_INFO("Sending goal to: x = %f, y = %f, theta = %f", x, y, theta);
     ac.sendGoal(goal);
@@ -108,7 +146,7 @@ void moveToSpecificPoint(double x, double y){
             pub_atBase_.publish(atbase_);
             sound_.value = 4;
             pub_Sound.publish(sound_);
-        }else if(x==0.10 && y==2.18){
+        }else if(x==6.23 && y==-2.44){
             ROS_INFO("reached the base !");
             ros::Duration(2).sleep();
             std_msgs::Int8 i;
